@@ -1,0 +1,6 @@
+{
+  "chat.promptFiles": true,
+  "chat.implicitContext.suggestedContext": false,
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "typescript.tsdk": "node_modules/typescript/lib"
+}

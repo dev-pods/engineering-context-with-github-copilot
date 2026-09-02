@@ -1,0 +1,39 @@
+{
+  "name": "GitHub Copilot Advanced",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    }
+  },
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb",
+    "storage": "16gb"
+  },
+  "containerEnv": {
+    "NEXT_TELEMETRY_DISABLED": "1"
+  },
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Luma Gallery",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "postCreateCommand": "npm ci && npm run preflight && npm test",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "dbaeumer.vscode-eslint"
+      ],
+      "settings": {
+        "chat.promptFiles": true,
+        "chat.implicitContext.suggestedContext": false,
+        "github.copilot.chat.codeGeneration.useInstructionFiles": true
+      }
+    }
+  }
+}

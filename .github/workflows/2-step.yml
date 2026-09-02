@@ -1,0 +1,114 @@
+name: Passo 2
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - workshop/context-experiment.md
+
+permissions:
+  contents: read
+  actions: write
+  issues: write
+
+env:
+  STEP_3_FILE: .github/steps/3-step.md
+
+jobs:
+  find_exercise:
+    name: Encontrar issue do exercício
+    uses: skills/exercise-toolkit/.github/workflows/find-exercise-issue.yml@v0.9.3
+
+  check_step_work:
+    name: Verificar trabalho do passo
+    needs: [find_exercise]
+    runs-on: ubuntu-latest
+    env:
+      ISSUE_NUMBER: ${{ needs.find_exercise.outputs.issue-number }}
+      ISSUE_REPOSITORY: ${{ github.repository }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Encontrar último comentário
+        id: find-last-comment
+        uses: peter-evans/find-comment@v4
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          direction: last
+
+      - name: Informar verificação
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          comment-id: ${{ steps.find-last-comment.outputs.comment-id }}
+          file: .github/translations/checking-work.md
+          edit-mode: replace
+
+      - name: Validar experimento de contexto
+        id: validate
+        continue-on-error: true
+        run: node scripts/validate-step.mjs 2
+
+      - name: Publicar resultado
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          comment-id: ${{ steps.find-last-comment.outputs.comment-id }}
+          edit-mode: replace
+          file: .github/translations/step-results-table.md
+          vars: |
+            step_number: 2
+            results_table:
+              - description: "Três estratégias comparadas com evidências"
+                passed: ${{ steps.validate.outcome == 'success' }}
+            tips:
+              - "Preencha as três execuções, a conclusão e o status do documento."
+
+      - name: Falhar quando a validação não passar
+        if: ${{ steps.validate.outcome == 'failure' }}
+        run: exit 1
+
+  post_next_step_content:
+    name: Publicar próximo passo
+    needs: [find_exercise, check_step_work]
+    runs-on: ubuntu-latest
+    env:
+      ISSUE_NUMBER: ${{ needs.find_exercise.outputs.issue-number }}
+      ISSUE_REPOSITORY: ${{ github.repository }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Informar conclusão
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          file: .github/translations/step-finished-prepare-next-step.md
+          vars: |
+            next_step_number: 3
+
+      - name: Publicar conteúdo do passo 3
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          file: ${{ env.STEP_3_FILE }}
+
+      - name: Publicar acompanhamento
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          file: .github/translations/watching-for-progress.md
+
+      - name: Avançar workflow
+        run: |
+          gh workflow disable "${{ github.workflow }}"
+          gh workflow enable "Passo 3"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

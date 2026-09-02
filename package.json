@@ -1,0 +1,38 @@
+{
+  "name": "engineering-context-with-github-copilot",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "preflight": "node scripts/preflight.mjs",
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:solution": "vitest run --config vitest.solution.config.ts",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "lucide-react": "^0.533.0",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@tailwindcss/postcss": "^4.1.14",
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^20.19.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "eslint": "^9.36.0",
+    "eslint-config-next": "16.3.4",
+    "jsdom": "^26.1.0",
+    "tailwindcss": "^4.1.14",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
