@@ -3,6 +3,8 @@ name: Passo 1
 on:
   workflow_dispatch:
   push:
+    branches-ignore:
+      - main
     paths:
       - workshop/copilot-capabilities.md
 

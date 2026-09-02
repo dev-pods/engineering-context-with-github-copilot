@@ -3,6 +3,8 @@ name: Passo 2
 on:
   workflow_dispatch:
   push:
+    branches-ignore:
+      - main
     paths:
       - workshop/context-experiment.md
 

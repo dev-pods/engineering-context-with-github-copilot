@@ -3,6 +3,8 @@ name: Passo 3
 on:
   workflow_dispatch:
   push:
+    branches-ignore:
+      - main
     paths:
       - workshop/instruction-comparison.md
       - workshop/context-packet.md

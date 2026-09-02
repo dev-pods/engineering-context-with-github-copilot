@@ -19,7 +19,7 @@ jobs:
     name: Iniciar exercício
     uses: skills/exercise-toolkit/.github/workflows/start-exercise.yml@v0.9.3
     with:
-      exercise-title: "GitHub Copilot Advanced: Contexto, Prompts e Modelos"
+      exercise-title: "GitHub Copilot Advanced - Contexto, Prompts e Modelos"
       intro-message: "Aprenda a tornar o trabalho com IA mais previsível usando contexto, prompts e escolha consciente de modelos."
 
   post_next_step_content:

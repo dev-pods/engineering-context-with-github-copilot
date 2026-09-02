@@ -3,6 +3,8 @@ name: Passo 5
 on:
   workflow_dispatch:
   push:
+    branches-ignore:
+      - main
     paths:
       - workshop/model-decision.md
       - src/components/upload/TagAutocomplete.tsx

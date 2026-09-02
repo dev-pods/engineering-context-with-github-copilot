@@ -3,6 +3,8 @@ name: Passo 4
 on:
   workflow_dispatch:
   push:
+    branches-ignore:
+      - main
     paths:
       - .github/prompts/tag-autocomplete.prompt.md
       - workshop/prompt-rubric.md
