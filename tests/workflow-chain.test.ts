@@ -41,6 +41,7 @@ describe("Skills delivery workflow chain", () => {
     expect(read(".github/workflows/2-step.yml")).toContain("src/lib/mock-tag-data.ts");
     expect(read(".github/workflows/3-step.yml")).toContain("src/app/upload/page.tsx");
     expect(read(".github/workflows/4-step.yml")).toContain("src/components/upload/**");
+    expect(read(".github/workflows/5-step.yml")).toContain(".github/skills/test-tags/**");
     expect(read(".github/workflows/5-step.yml")).toContain("src/components/upload/**");
     expect(read(".github/workflows/5-step.yml")).toContain("tests/tag-autocomplete.test.tsx");
   });

@@ -5,7 +5,7 @@ on:
   push:
     branches: [improve-upload]
     paths:
-      - .github/prompts/test-tags.prompt.md
+      - ".github/skills/test-tags/**"
       - tests/tag-autocomplete.test.tsx
       - "src/components/upload/**"
 

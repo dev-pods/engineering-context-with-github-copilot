@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-export function parsePromptFrontmatter(content) {
+export function parseSkillFrontmatter(content) {
   const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
   if (!match) return null;
   return Object.fromEntries(match[1].split(/\r?\n/).flatMap((line) => {
@@ -11,13 +11,15 @@ export function parsePromptFrontmatter(content) {
   }));
 }
 
+const testSkillPath = ".github/skills/test-tags/SKILL.md";
+
 const artifacts = {
   1: [".devcontainer/devcontainer.json", "src/app/upload/page.tsx"],
   2: ["src/lib/mock-tag-data.ts"],
   3: ["src/components/upload/TagAutocomplete.tsx", "src/app/upload/page.tsx"],
   4: ["src/components/upload/TagAutocomplete.tsx", "src/app/upload/page.tsx"],
-  5: [".github/prompts/test-tags.prompt.md", "tests/tag-autocomplete.test.tsx"],
-  6: ["src/components/upload/TagAutocomplete.tsx", "src/app/upload/page.tsx", "tests/tag-autocomplete.test.tsx"],
+  5: [testSkillPath, "tests/tag-autocomplete.test.tsx"],
+  6: ["src/components/upload/TagAutocomplete.tsx", "src/app/upload/page.tsx", "tests/tag-autocomplete.test.tsx", testSkillPath],
 };
 
 export function collectStepErrors(step, root = process.cwd()) {
@@ -27,13 +29,13 @@ export function collectStepErrors(step, root = process.cwd()) {
     if (!existsSync(resolve(root, path))) errors.push(`Arquivo ausente: ${path}`);
     else if (!readFileSync(resolve(root, path), "utf8").trim()) errors.push(`Arquivo vazio: ${path}`);
   }
-  if (step === 5 && existsSync(resolve(root, ".github/prompts/test-tags.prompt.md"))) {
-    const prompt = readFileSync(resolve(root, ".github/prompts/test-tags.prompt.md"), "utf8");
-    const metadata = parsePromptFrontmatter(prompt);
-    if (!metadata?.description) errors.push("O prompt precisa de description no frontmatter.");
-    if (metadata?.agent !== "agent") errors.push("Use agent: agent no prompt de testes.");
+  if ((step === 5 || step === 6) && existsSync(resolve(root, testSkillPath))) {
+    const skill = readFileSync(resolve(root, testSkillPath), "utf8");
+    const metadata = parseSkillFrontmatter(skill);
+    if (metadata?.name !== "test-tags") errors.push("Use name: test-tags no frontmatter da skill, igual ao nome da pasta.");
+    if (!metadata?.description?.trim()) errors.push("A skill precisa de description no frontmatter.");
     for (const source of ["TagAutocomplete.tsx", "vitest", "tests/tag-autocomplete.test.tsx"]) {
-      if (!prompt.toLowerCase().includes(source.toLowerCase())) errors.push(`Inclua ${source} no prompt de testes.`);
+      if (!skill.toLowerCase().includes(source.toLowerCase())) errors.push(`Inclua ${source} na skill de testes.`);
     }
   }
   return errors;

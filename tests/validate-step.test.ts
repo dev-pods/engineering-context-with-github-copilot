@@ -1,14 +1,15 @@
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { collectStepErrors, parsePromptFrontmatter } from "../scripts/validate-step.mjs";
+import { collectStepErrors, parseSkillFrontmatter } from "../scripts/validate-step.mjs";
 
 const roots: string[] = [];
+const skillPath = ".github/skills/test-tags/SKILL.md";
 const paths = [
   ".devcontainer/devcontainer.json", "src/app/upload/page.tsx",
   "src/lib/mock-tag-data.ts", "src/components/upload/TagAutocomplete.tsx",
-  ".github/prompts/test-tags.prompt.md", "tests/tag-autocomplete.test.tsx",
+  skillPath, "tests/tag-autocomplete.test.tsx",
 ];
 
 function fixture() {
@@ -16,8 +17,8 @@ function fixture() {
   roots.push(root);
   for (const path of paths) {
     mkdirSync(dirname(resolve(root, path)), { recursive: true });
-    writeFileSync(resolve(root, path), path.endsWith(".prompt.md")
-      ? "---\ndescription: Testar tags\nagent: agent\n---\nUse vitest para TagAutocomplete.tsx em tests/tag-autocomplete.test.tsx."
+    writeFileSync(resolve(root, path), path === skillPath
+      ? "---\nname: test-tags\ndescription: Gerar regressões quando o autocomplete de tags mudar\n---\nUse vitest para TagAutocomplete.tsx em tests/tag-autocomplete.test.tsx."
       : "TagAutocomplete");
   }
   return root;
@@ -48,15 +49,46 @@ describe("exercise artifact gates", () => {
       expect(collectStepErrors(step, root)).toEqual([]);
     });
   }
-  it("requires an actionable test prompt", () => {
+  it("requires an actionable test skill", () => {
     const root = fixture();
-    writeFileSync(resolve(root, ".github/prompts/test-tags.prompt.md"), "---\nagent: plan\n---\nGenerate tests.");
-    expect(collectStepErrors(5, root).join(" ")).toContain("agent: agent");
-    expect(collectStepErrors(5, root).join(" ")).toContain("description");
+    writeFileSync(resolve(root, skillPath), "---\nagent: agent\n---\nGenerate tests.");
+    const errors = collectStepErrors(5, root).join(" ");
+    for (const requirement of ["name: test-tags", "description", "TagAutocomplete.tsx", "vitest", "tests/tag-autocomplete.test.tsx"]) expect(errors).toContain(requirement);
   });
-  it("parses prompt metadata", () => {
-    expect(parsePromptFrontmatter("no metadata")).toBeNull();
-    expect(parsePromptFrontmatter('---\nname: "example"\n---\n')).toEqual({ name: "example" });
+  for (const step of [5, 6]) {
+    it(`does not accept a legacy prompt instead of the skill in step ${step}`, () => {
+      const root = fixture();
+      const legacyPath = resolve(root, ".github/prompts/test-tags.prompt.md");
+      mkdirSync(dirname(legacyPath), { recursive: true });
+      writeFileSync(legacyPath, readFileSync(resolve(root, skillPath), "utf8"));
+      rmSync(resolve(root, skillPath));
+      expect(collectStepErrors(step, root)).toContain(`Arquivo ausente: ${skillPath}`);
+    });
+    it(`rejects a skill whose name does not match its directory in step ${step}`, () => {
+      const root = fixture();
+      const skill = readFileSync(resolve(root, skillPath), "utf8");
+      writeFileSync(resolve(root, skillPath), skill.replace("name: test-tags", "name: other-tests"));
+      expect(collectStepErrors(step, root).join(" ")).toContain("name: test-tags");
+    });
+  }
+  it("accepts the lesson skill and resolves its source links from the skill directory", () => {
+    const root = fixture();
+    const lesson = readFileSync(resolve(import.meta.dirname, "../.github/steps/5-step.md"), "utf8");
+    const example = lesson.match(/   ```markdown\n([\s\S]*?)\n   ```/)?.[1].replace(/^   /gm, "");
+    if (!example) throw new Error("A lição precisa fornecer um exemplo de SKILL.md.");
+    const skillFile = resolve(root, skillPath);
+    writeFileSync(skillFile, example);
+    expect(collectStepErrors(5, root)).toEqual([]);
+    expect(collectStepErrors(6, root)).toEqual([]);
+    const sourcePaths = [...example.matchAll(/\]\(([^)]+)\)/g)].map((match) => resolve(dirname(skillFile), match[1]));
+    expect(sourcePaths).toEqual([
+      resolve(root, "src/components/upload/TagAutocomplete.tsx"),
+      resolve(root, "tests/setup.ts"),
+    ]);
+  });
+  it("parses skill metadata", () => {
+    expect(parseSkillFrontmatter("no metadata")).toBeNull();
+    expect(parseSkillFrontmatter('---\nname: "example"\n---\n')).toEqual({ name: "example" });
   });
   it("rejects unknown steps", () => expect(collectStepErrors(7)).toEqual(["Uso: node scripts/validate-step.mjs <1-6>"]));
 });

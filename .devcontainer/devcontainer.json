@@ -32,7 +32,6 @@
         "dbaeumer.vscode-eslint"
       ],
       "settings": {
-        "chat.promptFiles": true,
         "chat.implicitContext.suggestedContext": false,
         "github.copilot.chat.codeGeneration.useInstructionFiles": true
       }
