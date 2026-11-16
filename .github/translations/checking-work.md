@@ -1,3 +1,3 @@
-Legal! Parece que você está avançando.
+Recebemos sua entrega do passo {{ step_number }}.
 
-Vou verificar o artefato deste passo e já retorno com feedback.
+Os checks estão em execução. O resultado e, se aprovado, a próxima lição serão publicados nesta issue assim que terminarem.

@@ -3,141 +3,20 @@ name: Passo 5
 on:
   workflow_dispatch:
   push:
-    branches-ignore:
-      - main
+    branches: [improve-upload]
     paths:
-      - workshop/model-decision.md
-      - src/components/upload/TagAutocomplete.tsx
-      - src/app/upload/page.tsx
+      - .github/prompts/test-tags.prompt.md
+      - tests/tag-autocomplete.test.tsx
+      - "src/components/upload/**"
 
 permissions:
   contents: read
   actions: write
   issues: write
 
-env:
-  STEP_6_FILE: .github/steps/6-step.md
-
 jobs:
-  find_exercise:
-    name: Encontrar issue do exercício
-    uses: skills/exercise-toolkit/.github/workflows/find-exercise-issue.yml@v0.9.3
-
-  check_step_work:
-    name: Verificar trabalho do passo
-    needs: [find_exercise]
-    runs-on: ubuntu-latest
-    env:
-      ISSUE_NUMBER: ${{ needs.find_exercise.outputs.issue-number }}
-      ISSUE_REPOSITORY: ${{ github.repository }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Instalar dependências
-        run: npm ci
-
-      - name: Encontrar último comentário
-        id: find-last-comment
-        uses: peter-evans/find-comment@v4
-        with:
-          repository: ${{ env.ISSUE_REPOSITORY }}
-          issue-number: ${{ env.ISSUE_NUMBER }}
-          direction: last
-
-      - name: Informar verificação
-        uses: GrantBirki/comment@v2.1.1
-        with:
-          repository: ${{ env.ISSUE_REPOSITORY }}
-          issue-number: ${{ env.ISSUE_NUMBER }}
-          comment-id: ${{ steps.find-last-comment.outputs.comment-id }}
-          file: .github/translations/checking-work.md
-          edit-mode: replace
-
-      - name: Validar decisão e integração
-        id: validate
-        continue-on-error: true
-        run: node scripts/validate-step.mjs 5
-
-      - name: Confirmar contrato de solução preservado
-        id: solution-contract
-        continue-on-error: true
-        run: |
-          git fetch --no-tags origin main:refs/remotes/origin/main
-          git diff --exit-code origin/main -- tests/solution/
-
-      - name: Executar contratos da aplicação
-        id: app-checks
-        continue-on-error: true
-        run: |
-          npm test
-          npm run test:solution
-          npm run lint
-          npm run build
-
-      - name: Publicar resultado
-        uses: GrantBirki/comment@v2.1.1
-        with:
-          repository: ${{ env.ISSUE_REPOSITORY }}
-          issue-number: ${{ env.ISSUE_NUMBER }}
-          comment-id: ${{ steps.find-last-comment.outputs.comment-id }}
-          edit-mode: replace
-          file: .github/translations/step-results-table.md
-          vars: |
-            step_number: 5
-            results_table:
-              - description: "Dois modelos comparados e decisão humana registrada"
-                passed: ${{ steps.validate.outcome == 'success' }}
-              - description: "Testes de contrato preservados"
-                passed: ${{ steps.solution-contract.outcome == 'success' }}
-              - description: "Autocomplete, testes, lint e build aprovados"
-                passed: ${{ steps.app-checks.outcome == 'success' }}
-            tips:
-              - "Não altere os testes de contrato. Se a comparação com main falhar, confirme que a branch main existe no repositório criado pelo template."
-
-      - name: Falhar quando alguma validação não passar
-        if: ${{ steps.validate.outcome == 'failure' || steps.solution-contract.outcome == 'failure' || steps.app-checks.outcome == 'failure' }}
-        run: exit 1
-
-  post_next_step_content:
-    name: Publicar próximo passo
-    needs: [find_exercise, check_step_work]
-    runs-on: ubuntu-latest
-    env:
-      ISSUE_NUMBER: ${{ needs.find_exercise.outputs.issue-number }}
-      ISSUE_REPOSITORY: ${{ github.repository }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Informar conclusão
-        uses: GrantBirki/comment@v2.1.1
-        with:
-          repository: ${{ env.ISSUE_REPOSITORY }}
-          issue-number: ${{ env.ISSUE_NUMBER }}
-          file: .github/translations/step-finished-prepare-next-step.md
-          vars: |
-            next_step_number: 6
-
-      - name: Publicar conteúdo do passo 6
-        uses: GrantBirki/comment@v2.1.1
-        with:
-          repository: ${{ env.ISSUE_REPOSITORY }}
-          issue-number: ${{ env.ISSUE_NUMBER }}
-          file: ${{ env.STEP_6_FILE }}
-
-      - name: Publicar acompanhamento
-        uses: GrantBirki/comment@v2.1.1
-        with:
-          repository: ${{ env.ISSUE_REPOSITORY }}
-          issue-number: ${{ env.ISSUE_NUMBER }}
-          file: .github/translations/watching-for-progress.md
-
-      - name: Avançar workflow
-        run: |
-          gh workflow disable "${{ github.workflow }}"
-          gh workflow enable "Passo 6"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  delivery:
+    uses: ./.github/workflows/check-step.yml
+    with:
+      step: 5
+      next-step: 6

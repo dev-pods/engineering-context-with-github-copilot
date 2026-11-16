@@ -4,7 +4,7 @@
 
 - This is a GitHub Skills exercise built with Next.js App Router and TypeScript.
 - Keep UI components in `src/components` and shared data in `src/lib`.
-- Preserve the starter scope: the exercise changes only the upload tags experience.
+- Preserve the starter scope: learners expand tag data, implement upload tag suggestions and keyboard interaction, and add regression tests.
 
 ## Interaction Design
 
@@ -14,12 +14,13 @@
 
 ## Build And Test
 
-- Run `npm test` for the starter data contract.
-- Run `npm run test:solution` for the autocomplete acceptance contract.
+- Run `npm test` for starter health and learner tests.
+- Run the behavior contract named by the current lesson in `.github/steps/`. The full `npm run test:solution` intentionally fails before the learner completes the implementation.
 - Run `npm run lint` and `npm run build` before proposing completion.
 
 ## Boundaries
 
 - Do not add authentication, persistence, APIs, MCP servers, custom agents, or deployment.
-- Do not modify workshop evidence files unless the current step explicitly asks for it.
-- Keep the implementation diff limited to the autocomplete component, its Upload page integration, and necessary tests.
+- Do not modify acceptance contracts in `tests/solution/` to make learner checks pass.
+- Follow the current lesson in `.github/steps/`; there are no evidence worksheets to complete.
+- Keep learner changes limited to tag data, the autocomplete component, its Upload page integration, regression tests and the test prompt requested by the lesson.

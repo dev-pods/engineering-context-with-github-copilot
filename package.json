@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:solution": "vitest run --config vitest.solution.config.ts",
+    "test:learner": "node scripts/test-learner.mjs",
     "test:watch": "vitest"
   },
   "dependencies": {

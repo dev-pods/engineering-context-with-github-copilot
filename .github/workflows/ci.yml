@@ -19,11 +19,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
       - name: Instalar dependências
         run: npm ci
 
       - name: Testes baseline
         run: npm test
+
+      - name: Contratos quando a implementação existir
+        if: hashFiles('src/components/upload/TagAutocomplete.tsx') != ''
+        run: npm run test:solution
+
+      - name: Testes próprios quando entregues
+        if: hashFiles('tests/tag-autocomplete.test.tsx') != ''
+        run: npm run test:learner
 
       - name: Lint
         run: npm run lint

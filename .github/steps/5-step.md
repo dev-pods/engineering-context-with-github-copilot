@@ -1,70 +1,73 @@
-## Passo 5: Selecione o modelo por evidência e implemente
+# Passo 5: Automatize testes com um prompt reutilizável
 
-Modelos diferem em latência, custo, entradas suportadas e capacidade para tarefas complexas. Model engineering, neste exercício, significa escolher conscientemente o modelo adequado ao trabalho, usando o mesmo contexto e critérios para tornar a comparação justa.
+Os contratos fornecidos verificam comportamentos conhecidos. Agora crie testes próprios para proteger casos de borda que tenham valor para esta interface.
 
-### 📖 Teoria: menor custo que cumpre o contrato
+Continue na branch `improve-upload`.
 
-Nomes e multiplicadores mudam com o tempo. Compare categorias, não marcas:
+## Teoria: teste comportamento observável
 
-- um modelo otimizado para velocidade e custo;
-- um modelo indicado para raciocínio e codificação complexa.
+Um prompt file versionado torna uma tarefa recorrente reutilizável. Instructions definem convenções amplas; o prompt inicia uma tarefa específica; uma skill pode ser útil para um fluxo maior com referências e scripts. Para gerar testes neste projeto, um prompt é suficiente.
 
-Se ambos satisfazem o contrato, prefira o mais rápido ou econômico. Use o modelo maior quando a melhoria de qualidade for observável e necessária.
+### Ponte: de usar `/explain` a criar `/test-tags`
 
-> [!IMPORTANT]
-> Se apenas um modelo estiver disponível, use como segunda execução a resposta fornecida pelo facilitador na issue do workshop ou apresentada em modo somente leitura. Registre `amostra do facilitador` como origem. Não espere a disponibilidade mudar e não invente métricas.
+O nome `test-tags.prompt.md` origina `/test-tags` nas sessões que suportam prompt files. O comando carrega instruções da tarefa; `agent: agent` escolhe o agente, não o modelo. Os links no corpo apontam para as fontes e as ferramentas executam o trabalho. O slash command não é um comando de terminal nem aprovação automática das ações.
 
-### ⌨️ Atividade: compare, decida e implemente
+> **Compatibilidade:** [prompt files executam como comandos em sessões Local](https://code.visualstudio.com/docs/agent-customization/prompt-files), hoje legadas. Em sessões Copilot, a alternativa reutilizável é uma skill, como no curso anterior. Para manter este exercício e seus gates, não migre formatos agora: se Local não estiver disponível, anexe o arquivo e peça a execução do seu conteúdo. Isso não registra um slash command nessa sessão.
 
-1. Execute o prompt `/tag-autocomplete` com um modelo de velocidade/custo. Não edite código. Registre a resposta na seção **Modelo A** de `workshop/model-decision.md`.
+Teste resultados que a pessoa usuária observa: sugestões exibidas, valor selecionado, lista fechada ou foco mantido. Um teste que apenas importa o componente não protege esse comportamento. Copilot pode escrever o teste, mas você decide se a asserção verifica o requisito.
 
-1. Inicie uma conversa nova, selecione um modelo de raciocínio/codificação e execute o mesmo prompt sem mudar contexto ou requisitos. Preencha **Modelo B**. Em cada execução, registre se a origem foi `execução própria` ou `amostra do facilitador`.
+## Atividade: crie um prompt e dois testes (8 minutos)
 
-1. Compare aderência, escopo, premissas, validação, follow-ups, latência e créditos/requests. Escolha um modelo e registre o trade-off. Altere:
+1. Crie `.github/prompts/test-tags.prompt.md`:
 
-   ```text
-   Decisão humana: APROVADO
+   ```markdown
+   ---
+   description: Gerar testes de regressão do autocomplete de tags
+   agent: agent
+   ---
+   Examine [TagAutocomplete](../../src/components/upload/TagAutocomplete.tsx)
+   e o [setup de testes](../../tests/setup.ts). Use Vitest, React Testing
+   Library e userEvent. Crie testes
+   em tests/tag-autocomplete.test.tsx, com lista local e wrapper controlado.
+   Não copie nem altere tests/solution. Teste comportamento observável.
+   Inclua ao menos dois casos de borda com asserções de resultado. Execute
+   os testes e corrija defeitos reais.
    ```
 
-1. Leia `tests/solution/tag-autocomplete.test.tsx` no editor. Ele define a API mínima do componente e o comportamento verificável.
-
-1. Com o modelo escolhido, selecione **Agent** no menu de modos do Chat e envie:
-
-   ```text
-   Implemente somente o plano aprovado em workshop/implementation-plan.md.
-   Crie src/components/upload/TagAutocomplete.tsx e integre-o à página Upload.
-   Use src/lib/mock-tag-data.ts como fonte. Não altere o contrato dos testes.
-   Execute npm run test:solution, npm run lint e npm run build.
-   Pare e peça aprovação se precisar ampliar o escopo.
-   ```
-
-1. Revise cada alteração antes de aceitá-la. O modo de execução é apenas um mecanismo neste workshop; configuração de custom agents e delegação pertencem aos cursos dedicados.
-
-1. Execute os checks manualmente:
+2. Acrescente ao prompt pelo menos dois casos e resultados esperados. Por exemplo: prefixo em maiúsculas deve encontrar a mesma sugestão; espaços depois da vírgula não devem impedir a busca. Outras opções: token sem resultados ou token vazio.
+3. Salve e, em uma sessão Local com Agent, digite `/` e selecione `/test-tags`. Se o recurso não estiver disponível, anexe o prompt e o componente usando `#` ou **Add Context** e peça: “Execute as instruções do prompt anexado para gerar os testes”. Não instale extensões ou crie outra personalização para contornar a ausência.
+4. Revise se cada teste simula uma interação e verifica um resultado observável. Se houver tempo, altere temporariamente uma asserção para confirmar que o teste falha; restaure somente essa edição antes de publicar.
+5. Execute:
 
    ```bash
+   node scripts/validate-step.mjs 5
+   npm test -- --run tests/tag-autocomplete.test.tsx
+   npm run test:learner
    npm run test:solution
-   npm run lint
-   npm run build
    ```
 
-1. Marque `workshop/model-decision.md` como `CONCLUIDO`, remova os campos `[PREENCHA]`, faça commit e push:
+6. Publique o prompt, os testes e qualquer correção necessária:
 
    ```bash
-   git add workshop/model-decision.md src/app/upload/page.tsx src/components/upload/TagAutocomplete.tsx
-   git commit -m "feat: adicionar autocomplete de tags"
+   git add .github/prompts/test-tags.prompt.md tests/tag-autocomplete.test.tsx
+   git add src/app/upload/page.tsx src/components/upload
+   git commit -m "Add reusable tag regression tests"
    git push
    ```
 
-### ✅ Resultado esperado
+## Resultado esperado
 
-A escolha do modelo cita diferenças observáveis e a origem de cada amostra. A implementação satisfaz os contratos sem alterar os testes nem ampliar o escopo.
+Você criou um prompt reutilizável e pelo menos dois testes próprios aprovados. O workflow verifica a presença e execução dos testes; a relevância das asserções continua sendo sua responsabilidade na revisão.
+
+**A ponte na entrega:** transformar o pedido em um arquivo permite reutilizar tarefa, contexto e limites. Encontrar `/test-tags` no menu comprova descoberta, não qualidade; o que valida o resultado é executar e revisar os testes gerados.
 
 <details>
-<summary>Está com problemas?</summary><br/>
+<summary>Está com problemas? 🤷</summary><br/>
 
-- Se latência ou requests não forem exibidos, registre `não disponível`; não estime valores.
-- Se o teste de teclado falhar, confira qual opção recebe destaque após `ArrowDown` e se `Enter` substitui apenas o token atual.
-- Não edite os testes para fazer a solução passar. Corrija o componente ou a integração.
+- **Os testes não executam:** siga `tests/setup.ts`, use `@/` para imports e não instale outro runner.
+- **O gate não reconhece seus testes:** entregue pelo menos dois testes aprovados em `tests/tag-autocomplete.test.tsx`, sem `skip` ou `todo`. Confira com `npm run test:learner`.
+- **`/test-tags` não aparece:** confirme que salvou `.github/prompts/test-tags.prompt.md`. [Prompt files viram comandos](https://code.visualstudio.com/docs/agent-customization/prompt-files) nas sessões que os suportam. Se não aparecer, anexe o prompt e o componente e peça para executar as instruções. Mantenha o arquivo e os testes exigidos pelo gate.
+- **Você precisa desfazer a asserção alterada temporariamente:** restaure apenas essa linha. Não use `git restore` nem reverta arquivos inteiros, para não perder os testes gerados.
+- **Um contrato foi alterado sem querer:** confira com `git diff origin/main -- tests/solution/` e desfaça apenas a alteração indevida.
 
 </details>

@@ -4,7 +4,8 @@
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "22"
-    }
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "hostRequirements": {
     "cpus": 2,
@@ -22,6 +23,7 @@
     }
   },
   "postCreateCommand": "npm ci && npm run preflight && npm test",
+  "remoteUser": "vscode",
   "customizations": {
     "vscode": {
       "extensions": [

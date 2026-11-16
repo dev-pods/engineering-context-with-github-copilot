@@ -1,0 +1,172 @@
+name: Verificar entrega
+
+on:
+  workflow_call:
+    inputs:
+      step:
+        type: number
+        required: true
+      next-step:
+        type: number
+        default: 0
+    outputs:
+      issue-url:
+        value: ${{ jobs.find_exercise.outputs.issue-url }}
+
+permissions:
+  contents: read
+  actions: write
+  issues: write
+
+jobs:
+  find_exercise:
+    uses: skills/exercise-toolkit/.github/workflows/find-exercise-issue.yml@v0.9.3
+
+  check_delivery:
+    needs: [find_exercise]
+    runs-on: ubuntu-latest
+    env:
+      STEP: ${{ inputs.step }}
+      BRANCH: ${{ github.head_ref || github.ref_name }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Sinalizar início das verificações
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ github.repository }}
+          issue-number: ${{ needs.find_exercise.outputs.issue-number }}
+          file: .github/translations/checking-work.md
+          vars: |
+            step_number: ${{ inputs.step }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Preparar dependências
+        id: install
+        continue-on-error: true
+        run: npm ci
+
+      - name: Conferir branch e artefatos
+        id: artifacts
+        continue-on-error: true
+        run: |
+          test "$BRANCH" = improve-upload
+          node scripts/validate-step.mjs "$STEP"
+
+      - name: Preservar contratos de aceitação
+        id: contract
+        continue-on-error: true
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          git diff --exit-code origin/main -- tests/solution/
+
+      - name: Executar testes do starter
+        id: baseline
+        continue-on-error: true
+        run: npm test
+
+      - name: Verificar comportamento da entrega
+        id: behavior
+        continue-on-error: true
+        run: |
+          case "$STEP" in
+            1) node scripts/validate-step.mjs 1 ;;
+            2) npm run test:solution -- tests/solution/tag-catalog.test.ts ;;
+            3) npm run test:solution -- tests/solution/tag-autocomplete.test.tsx -t 'filters|click|already selected|integrates' ;;
+            4|5|6) npm run test:solution ;;
+            *) exit 1 ;;
+          esac
+
+      - name: Executar testes produzidos pelo aluno
+        id: learner
+        if: inputs.step >= 5
+        continue-on-error: true
+        run: npm run test:learner
+
+      - name: Lint
+        id: lint
+        continue-on-error: true
+        run: npm run lint
+
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: npm run build
+
+      - name: Publicar tabela de feedback
+        if: always()
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ github.repository }}
+          issue-number: ${{ needs.find_exercise.outputs.issue-number }}
+          file: .github/translations/step-results-table.md
+          vars: |
+            step_number: ${{ inputs.step }}
+            results_table:
+              - description: "Dependências instaladas"
+                passed: ${{ steps.install.outcome == 'success' }}
+              - description: "Branch improve-upload e arquivos da entrega"
+                passed: ${{ steps.artifacts.outcome == 'success' }}
+              - description: "Contratos de aceitação preservados"
+                passed: ${{ steps.contract.outcome == 'success' }}
+              - description: "Testes do projeto"
+                passed: ${{ steps.baseline.outcome == 'success' }}
+              - description: "Comportamento solicitado nesta etapa"
+                passed: ${{ steps.behavior.outcome == 'success' }}
+              - description: "Dois testes próprios executados (a partir do passo 5)"
+                passed: ${{ inputs.step < 5 || steps.learner.outcome == 'success' }}
+              - description: "Lint"
+                passed: ${{ steps.lint.outcome == 'success' }}
+              - description: "Build"
+                passed: ${{ steps.build.outcome == 'success' }}
+            tips:
+              - "Abra o check que falhou em Actions, corrija a entrega e faça push na mesma branch."
+              - "Se a entrega já estava pronta, use Run workflow no passo atual e selecione improve-upload."
+
+      - name: Impedir avanço quando algum check falhar
+        if: always()
+        env:
+          ALL_PASSED: ${{ steps.install.outcome == 'success' && steps.artifacts.outcome == 'success' && steps.contract.outcome == 'success' && steps.baseline.outcome == 'success' && steps.behavior.outcome == 'success' && (inputs.step < 5 || steps.learner.outcome == 'success') && steps.lint.outcome == 'success' && steps.build.outcome == 'success' }}
+        run: test "$ALL_PASSED" = true
+
+  publish_lesson:
+    needs: [find_exercise, check_delivery]
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      STEP: ${{ inputs.step }}
+      NEXT_STEP: ${{ inputs.next-step }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Publicar próximo passo
+        if: inputs.next-step > 0
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ github.repository }}
+          issue-number: ${{ needs.find_exercise.outputs.issue-number }}
+          file: .github/steps/${{ inputs.next-step }}-step.md
+
+      - name: Publicar revisão final
+        if: inputs.step == 6
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ github.repository }}
+          issue-number: ${{ needs.find_exercise.outputs.issue-number }}
+          file: .github/steps/x-review.md
+
+      - name: Avançar workflow
+        run: |
+          if [ "$NEXT_STEP" -gt 0 ]; then
+            gh workflow enable "Passo $NEXT_STEP"
+          fi
+          gh workflow disable "Passo $STEP"

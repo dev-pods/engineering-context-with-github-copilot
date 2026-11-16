@@ -1,67 +1,41 @@
-## Extensão opcional: Space, MCP e coding agent
+# Extensão opcional: Spaces, GitHub MCP e coding agent
 
-Esta atividade de 30 a 45 minutos conecta contexto compartilhado, ferramentas externas e delegação. Ela não bloqueia a conclusão do núcleo porque a disponibilidade depende da licença e das políticas da organização.
+Este roteiro é material de apoio ao facilitador para a hora da apresentação. Não faz parte dos 60 minutos de hands-on, não exige mudanças no repositório do aluno e não participa da validação. A apresentação desses recursos é opcional; não acrescente tempo ao treinamento de duas horas. Disponibilidade e autorização dependem da conta e das políticas da organização.
 
-### 📖 Teoria: três responsabilidades diferentes
+Esta demonstração não conta como prática do aluno. Se não couber na apresentação ou faltar acesso aprovado, omita-a ou use uma gravação identificada.
 
-- **Copilot Spaces** cura fontes e instruções para uma finalidade compartilhada.
-- **GitHub MCP** permite que o agente consulte ou altere recursos do GitHub usando ferramentas explicitamente habilitadas.
-- **Copilot coding agent** recebe uma issue delimitada, trabalha em um ambiente efêmero e abre um pull request para revisão.
+## A ponte com o hands-on
 
-> [!IMPORTANT]
-> Use OAuth quando disponível e habilite somente as ferramentas necessárias. Nunca cole PATs, tokens ou segredos no Chat, em arquivos versionados ou nos artefatos do workshop.
+Use a mesma melhoria de tags em um repositório de demonstração autorizado, com a solução já disponível. Assim, a turma reconhece os artefatos, sem precisar aprender outro domínio.
 
-### ⌨️ Atividade 1: cure e teste um Space
+| No hands-on | Na demonstração | O que muda |
+| --- | --- | --- |
+| Fontes anexadas com `#` no passo 3 | Arquivos e PR reunidos em um Space | De contexto de uma conversa para curadoria compartilhada |
+| Diff local revisado no passo 6 | Leitura dos comentários de uma PR por GitHub MCP | De arquivos locais para dados externos obtidos por uma ferramenta autorizada |
+| Implementação em Agent no Codespace | Issue delegada ao coding agent | De acompanhamento local para execução delegada e revisão posterior |
 
-1. Confirme se [Copilot Spaces](https://github.com/copilot/spaces) está disponível. Se não estiver, acompanhe o walkthrough do facilitador e marque a execução como `simulada` em `workshop/space-design.md`.
-1. Crie o Space `Luma Gallery - Tag Autocomplete Review` com a instrução de responder somente com base nas fontes, citar fontes usadas e declarar lacunas.
-1. Adicione apenas o context packet, o prompt aprovado, a decisão de modelo, o componente, a página Upload e o pull request concluído.
-1. Faça a mesma pergunta em um Chat comum sem anexos e no Space:
+Mantenha explícitas as distinções: `/` inicia um comando/fluxo; `@` direciona a um participante legado; `#` seleciona contexto ou ferramentas disponíveis; o seletor escolhe o modelo. Nenhum desses atalhos instala MCP, autentica no GitHub ou autoriza escrita.
 
-   ```text
-   A implementação do autocomplete de tags está pronta para evoluir?
-   Liste evidências, riscos e o menor hardening recomendado.
-   ```
+## 1. Copilot Space: curadoria de contexto
 
-1. Registre diferenças de fundamentação, lacunas e fontes em `workshop/space-design.md`.
+Explique a diferença entre contexto local de uma conversa e uma coleção compartilhada de fontes. Na conta do facilitador, crie um Space com os arquivos de dados, Upload, autocomplete e a PR da demonstração. Inclua uma instrução curta: responder com base nessas fontes, citar evidências e explicitar lacunas. Não inclua todo o repositório indiscriminadamente.
 
-### ⌨️ Atividade 2: crie uma issue com GitHub MCP
+Pergunte: “Quais comportamentos de tags estão implementados e quais riscos ainda precisam de testes?”. Abra as fontes citadas e confira se a resposta descreve a aplicação real. Não use limites menores de contexto como garantia de qualidade. Mostre propriedade, permissões e cuidados com conteúdo sensível antes de compartilhar.
 
-1. No Codespace, abra a configuração de MCP pelo menu de ferramentas do Chat e conecte o servidor GitHub usando OAuth. A interface pode variar por versão.
-1. Habilite somente as ferramentas necessárias para consultar o repositório e criar issues.
-1. Peça ao Agent para criar uma issue neste repositório:
+## 2. GitHub MCP: ferramenta autorizada, não apenas texto
 
-   ```text
-   Crie uma issue de hardening para o autocomplete de tags.
+Em ambiente próprio previamente autorizado, mostre a configuração do servidor GitHub MCP e o seletor de ferramentas. Explique que o protocolo conecta o assistente a ferramentas e fontes externas; permissões vêm da autenticação e das políticas, não do prompt.
 
-   Escopo:
-   - anunciar de forma acessível a quantidade de sugestões e o resultado selecionado;
-   - fechar sugestões com Escape sem apagar o valor;
-   - adicionar testes observáveis para esses comportamentos;
-   - não alterar APIs, persistência, layout geral ou testes existentes.
+Comece por uma leitura: peça os comentários da PR de demonstração. Exiba o nome da ferramenta, os argumentos de repositório/PR e o retorno. Confira um comentário na página real. Se nenhuma ferramenta foi chamada, não apresente uma resposta plausível como prova de acesso ao GitHub.
 
-   Inclua critérios de aceite, arquivos prováveis e comandos de validação.
-   Mostre o conteúdo final antes de criar a issue.
-   ```
+Em seguida, peça um rascunho de issue pequena para adicionar testes de limpeza do campo. Confira repositório, título e critérios. Só então autorize a ferramenta de criação da issue. Abra a issue no GitHub e confira o resultado. Compare com `gh pr create` do passo 6: a CLI também acessa o GitHub, mas esse comando não é uma chamada MCP. Não configure um servidor nem compartilhe tokens com os alunos; prefira OAuth onde disponível.
 
-1. Revise o título, o corpo, o repositório alvo e o escopo antes de autorizar a ferramenta. Registre a URL da issue.
+## 3. Coding agent: delegação com revisão
 
-### ⌨️ Atividade 3: delegue e revise
+Atribua a issue ao Copilot coding agent em um repositório de demonstração. Mostre uma sessão e PR previamente concluídas para evitar esperar pela execução ao vivo. Confira arquivos alterados, testes, permissões e mudanças fora do escopo. Solicite uma correção quando necessário; a aprovação e o merge continuam humanos.
 
-1. Atribua a issue ao Copilot coding agent. Se o responsável não estiver disponível, use a sessão demonstrada pelo facilitador e marque a execução como `simulada`.
-1. Quando o pull request for aberto, selecione **View session** e observe fontes consultadas, comandos, testes e decisões de escopo.
-1. Revise o diff e os checks. Se houver uma divergência, faça um comentário específico no PR e aguarde a iteração.
-1. Registre em `workshop/space-design.md` a URL do PR, aderência aos critérios, mudanças fora do escopo e sua decisão. Não faça merge automático.
+Retome o passo 3: a tarefa delegada também precisa de objetivo, fontes, limites e critérios de aceite. O agente não herda automaticamente toda a conversa do Codespace. Inclua na issue o contexto necessário, sem credenciais, e diferencie explicitamente a nova execução da PR preparada que está exibindo.
 
-### ✅ Resultado esperado
+## Alternativa sem acesso
 
-A evidência distingue claramente execução real de walkthrough. A issue é pequena e verificável, o coding agent trabalha apenas no hardening e a decisão final continua com a pessoa revisora.
-
-<details>
-<summary>Está com problemas?</summary><br/>
-
-- Se algum recurso não estiver disponível, use o walkthrough e registre `simulada`; não invente URLs.
-- Se o MCP solicitar um segredo manual, cancele e peça ajuda ao facilitador. Segredos não devem passar pelo Chat.
-- Se o coding agent ampliar o escopo, comente no PR citando os critérios da issue antes de aceitar mudanças.
-
-</details>
+Use capturas sanitizadas ou uma gravação preparada contendo fontes do Space, chamada MCP revisada, issue criada e PR do agente. Identifique explicitamente como demonstração gravada. Nunca invente URLs, execução de ferramentas ou resultados. A omissão desta extensão não muda a conclusão do aluno nem prolonga a sessão.

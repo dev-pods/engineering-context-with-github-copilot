@@ -1,57 +1,68 @@
-## Passo 6: Revise como humano e conclua o pull request
+# Passo 6: Revise e entregue a pull request
 
-Uma saída plausível não é uma saída aprovada. Human-in-the-Loop significa verificar comportamento, riscos e evidências antes da entrega. O mecanismo de execução pode mudar, mas a responsabilidade pela decisão final permanece humana.
+Sua mudança está implementada e testada. Faça uma última revisão humana e abra uma PR que outra pessoa consiga avaliar.
 
-### 📖 Teoria: aprovação exige evidência
+## Teoria: Human-in-the-Loop
 
-Revise o comportamento contra os critérios, inspecione o diff e execute validações independentes da resposta do modelo. Uma aprovação deve apontar evidências e limitações conhecidas.
+Copilot pode sugerir código e apontar riscos, mas não é responsável pela aprovação. CI verde é evidência útil, não autorização automática para merge. Confira o diff, os resultados e as limitações antes de aprovar.
 
-### ⌨️ Atividade: revise e conclua o PR
+### Ponte: do contexto local ao MCP e à colaboração
 
-1. Revise o diff e execute novamente:
+Até aqui você escolheu fontes com `#`, descreveu tarefas, selecionou modelos e usou ferramentas para editar e testar. Quando os dados estão fora do workspace — por exemplo, comentários atuais de uma PR — uma integração autorizada pode recuperá-los.
 
-   ```bash
-   npm test
-   npm run test:solution
-   npm run lint
-   npm run build
-   ```
+| Conceito | O que acrescenta ao fluxo |
+| --- | --- |
+| Ferramenta nativa ou de extensão | Lê arquivos, executa testes ou consulta serviços; nem toda ferramenta é MCP |
+| MCP | Protocolo para conectar ferramentas e fontes externas ao assistente; não é modelo, participante nem sinônimo de RAG |
+| Copilot Space | Curadoria de fontes compartilhadas, como código, issues e PRs, para uma discussão com contexto |
+| Coding agent | Execução delegada de uma tarefa em outra sessão/ambiente, com mudanças e PR a revisar; não é apenas o Agent local no Codespace |
 
-1. Teste manualmente `/upload`: digite `w`, navegue com teclado, selecione uma sugestão e confirme que tags existentes não são repetidas.
+Uma chamada MCP pode trazer evidências para grounding ou realizar uma ação. As permissões vêm da autenticação e das políticas, não de escrever `#` ou pedir acesso no prompt. Antes de uma escrita externa, confira ferramenta, repositório, argumentos e autorização; depois, verifique o resultado no serviço. Uma resposta dizendo “criei a issue” não comprova a criação.
 
-1. Inspecione o diff e confirme que `tests/solution/tag-autocomplete.test.tsx` não foi alterado. Preencha `workshop/human-review.md`, mas mantenha a decisão pendente enquanto houver falhas ou divergências.
+Esta é uma conexão conceitual com o roteiro `.github/steps/x-extension.md`, não uma atividade extra: **não configure MCP, Space ou coding agent para concluir**.
 
-1. Faça commit da revisão inicial, envie a branch e abra um **draft pull request** para `main`:
+## Atividade: revise e entregue (10 minutos)
 
-   ```bash
-   git add workshop/human-review.md
-   git commit -m "docs: registrar revisão humana inicial"
-   git push
-   ```
-
-1. Corrija qualquer divergência relevante. Depois:
-
-   - altere `workshop/human-review.md` para `Status: CONCLUIDO`;
-   - altere a revisão final para `Decisão: APPROVED`;
-   - remova todos os campos `[PREENCHA]`.
-
-1. Faça commit e push. Marque o draft pull request como **Ready for review**. O workflow executará a validação final e concluirá o exercício:
+1. Na branch `improve-upload`, confira o escopo:
 
    ```bash
-   git add workshop/human-review.md
-   git commit -m "docs: registrar aprovação humana"
-   git push
+   git diff origin/main -- src tests .github/prompts
+   git diff --exit-code origin/main -- tests/solution/
    ```
 
-### ✅ Resultado esperado
+   Confirme que não alterou contratos, adicionou dependências desnecessárias ou introduziu backend/persistência.
+2. Solicite uma revisão no editor ou no Chat com a comparação da branch contra `origin/main`. Use o contexto de alterações em `#` ou **Add Context** se ele oferecer essa comparação. Se mostrar apenas mudanças não commitadas, anexe a saída do primeiro comando acima: seus commits continuam fazendo parte da revisão mesmo com o working tree limpo.
 
-O PR está pronto para revisão, todos os checks passam e a decisão humana referencia o diff, o contrato automatizado e o teste manual. Spaces, MCP e coding agent permanecem disponíveis como extensão opcional após a conclusão.
+   ```text
+   Revise esta branch em relação a origin/main. Priorize bugs, regressões de
+   interação e lacunas de teste. Confira filtro, clique, teclado, foco e
+   referências ARIA. Cite os locais dos problemas. Não edite arquivos nem
+   aprove a PR por mim.
+   ```
+
+3. Confira cada achado no diff e no preview. Descarte falsos positivos; corrija defeitos reais. Se editar arquivos, faça commit e push somente dos arquivos envolvidos antes de abrir ou atualizar a PR.
+4. Abra uma PR de `improve-upload` para `main`:
+
+   ```bash
+   gh pr create --base main --head improve-upload --title "Improve upload tags" --body-file .github/pull_request_template.md
+   ```
+
+   Este comando usa a **GitHub CLI**, não MCP. Uma ferramenta GitHub MCP também pode criar artefatos no serviço; muda o mecanismo de acesso, não a obrigação de revisar e autorizar.
+
+5. Preencha a descrição com o comportamento entregue, checks executados e limitações reais. Aguarde **Passo 6** e **CI** ficarem verdes; você decide se deve fazer merge.
+
+## Resultado esperado
+
+Uma PR com escopo revisado, contrato preservado e validações aprovadas. Copilot review é insumo, não aprovação. Spaces, MCP e coding agent são extensões opcionais apresentadas pelo facilitador, sem gate nem acesso exigido do aluno.
+
+**A ponte na entrega:** feche o ciclo com fontes → pedido → modelo/agente → ferramentas → testes → decisão humana. O gate verifica o resultado técnico, não qual modelo, participante ou integração você utilizou. Saiba mais sobre [MCP no VS Code](https://code.visualstudio.com/docs/agent-customization/mcp-servers).
 
 <details>
-<summary>Está com problemas?</summary><br/>
+<summary>Está com problemas? 🤷</summary><br/>
 
-- Se o workflow ainda não executar, confirme que o PR aponta para `main` e não está mais como draft.
-- Se o diff mostrar mudanças nos testes de solução, restaure o contrato antes de aprovar.
-- O workflow só finaliza quando os checks passam e a decisão humana é `APPROVED`.
+- **Um check falhou:** abra o log, corrija na mesma branch e publique novamente. Não crie outra PR nem modifique workflows ou contratos para contornar a falha.
+- **A PR não encerrou o exercício:** a PR deve ser do mesmo repositório, de `improve-upload` para `main`. Se ela foi criada antes de o passo 6 ser habilitado, faça um novo push na branch ou reabra a PR.
+- **A revisão final apareceu, mas o encerramento falhou:** abra o job `finish_exercise` em **Actions > Passo 6** e reexecute somente esse job. Não é necessário refazer a implementação.
+- **Uma ferramenta MCP não aparece:** MCP não é requisito deste passo. Nunca forneça tokens no Chat.
 
 </details>

@@ -1,7 +1,6 @@
 name: Passo 0
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
@@ -20,8 +19,8 @@ jobs:
     name: Iniciar exercício
     uses: skills/exercise-toolkit/.github/workflows/start-exercise.yml@v0.9.3
     with:
-      exercise-title: "GitHub Copilot Advanced - Contexto, Prompts e Modelos"
-      intro-message: "Aprenda a tornar o trabalho com IA mais previsível usando contexto, prompts e escolha consciente de modelos."
+      exercise-title: "GitHub Copilot Advanced: entregas com contexto"
+      intro-message: "Aplique contexto, prompts e modelos em melhorias reais da Luma Gallery, do catálogo à pull request."
 
   post_next_step_content:
     name: Publicar primeiro passo
@@ -52,7 +51,9 @@ jobs:
           issue-number: ${{ env.ISSUE_NUMBER }}
           file: .github/translations/watching-for-progress.md
 
-      - name: Habilitar passo 1
-        run: gh workflow enable "Passo 1"
+      - name: Habilitar passo 1 e desabilitar inicialização
+        run: |
+          gh workflow enable "Passo 1"
+          gh workflow disable "${{ github.workflow }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,59 +1,70 @@
-## Passo 1: Escolha conscientemente os recursos do Copilot Chat
+# Passo 1: Conheça a Luma Gallery
 
-O GitHub Copilot oferece mais do que uma caixa de texto. Comandos, participantes, referências e modos mudam a forma como o contexto é reunido e o tipo de ação permitida. A lista disponível pode variar por licença, extensão e organização, por isso o objetivo não é decorar nomes: é reconhecer a categoria certa para cada fase.
+Você já sabe conversar com o Copilot e personalizar seu comportamento. Neste hands-on, vai aplicar essas técnicas para melhorar a experiência de tags na Luma Gallery. O objetivo é adicionar sugestões acessíveis ao campo de tags da página Upload.
 
-### 📖 Teoria: diagnostique o ambiente pela intenção
+Não é necessário consultar a apresentação. Este passo e os seguintes contêm as instruções necessárias.
 
-Você já usou Ask, Plan e Agent nos exercícios anteriores. Aqui, `/`, `@` e `#` funcionam como um diagnóstico: eles revelam quais comandos, especializações e fontes de contexto estão realmente disponíveis neste Codespace.
+## Teoria: contexto antes de código
 
-> [!IMPORTANT]
-> Um recurso aparecer na interface não significa que ele seja necessário. Comece pela intenção: pesquisar, planejar, implementar ou revisar.
+O Copilot usa seu pedido, o contexto que você fornece e as ferramentas disponíveis. Contexto explícito — como arquivos anexados — ajuda a fundamentar uma resposta em evidências do projeto. Ferramentas de busca recuperam trechos relevantes; isso se relaciona ao princípio de RAG, mas não garante que a resposta esteja correta. Confira as fontes citadas.
 
-### ⌨️ Atividade: descubra e classifique o que está disponível
+Use Ask para investigar antes de editar. Instructions de repositório já aplicam regras compartilhadas; não é necessário recriá-las neste exercício.
 
-1. Abra este repositório em um Codespace.
+### Ponte: `/`, `@` e `#` têm funções diferentes
 
-1. No terminal, crie a branch que será usada durante todo o exercício:
+| Recurso | Para que serve | Como aparece nesta entrega |
+| --- | --- | --- |
+| `/` — slash command | Inicia um comando ou fluxo reutilizável disponível no Chat | `/explain`, quando disponível, ajuda a entender um trecho; no passo 5 você criará `/test-tags` |
+| `@` — chat participant | Direciona a conversa para um participante especializado, quando suportado | Se `@workspace` aparecer no menu, ele pode ajudar a investigar o projeto |
+| `#` — menção de contexto ou ferramenta | Seleciona arquivos, símbolos, saídas ou ferramentas pelo menu | Anexe a página Upload e o catálogo para a resposta usar as fontes certas |
+
+O `#` não é uma hashtag de classificação: selecione o item no autocomplete e confira a referência anexada. Um participante não é o modelo escolhido nem um agente personalizado do seletor de agentes. Mencionar uma ferramenta também não concede permissão para executá-la.
+
+> **Compatibilidade:** Local e Copilot são ambientes de execução da sessão (harnesses), não modelos. A [documentação atual do VS Code](https://code.visualstudio.com/docs/chat/copilot-chat-context) trata participantes `@` como recurso legado de sessões Local, não suportado em sessões Copilot. Se não aparecerem, faça a pergunta diretamente com os arquivos anexados. A ausência do participante não impede a atividade.
+
+## Atividade: abra o projeto e investigue (5 minutos)
+
+> Inicie o Codespace durante a apresentação ou antes dos 60 minutos de hands-on. Este passo pressupõe o ambiente aberto.
+
+1. Confirme que está na cópia do template. No terminal, execute:
 
    ```bash
-   git switch -c copilot-advanced
    npm run preflight
+   npm test
+   git switch -c improve-upload
    ```
 
-1. Inicie a aplicação pela task **Luma Gallery: iniciar aplicação** ou execute `npm run dev` em um terminal dedicado. Quando a porta 3000 for encaminhada, abra o preview.
-
-1. Abra o GitHub Copilot Chat no modo **Ask**. Digite, sem enviar, `/`, `#` e `@`. Observe as opções e a origem indicada pela interface.
-
-1. Confirme que o Chat responde com uma pergunta simples sobre o repositório. Depois faça uma pergunta de descoberta sem editar arquivos:
+2. Execute **Terminal > Run Task > Luma Gallery: iniciar aplicação**. Em **Ports**, abra **3000** e navegue até `/upload`.
+3. Consulte os menus `/`, `@` e `#` e o seletor de ferramentas, sem enviar um pedido para cada menu. Observe quais itens são comandos, participantes, fontes ou ações. A disponibilidade depende da sessão, versão e políticas.
+4. Em Ask, digite `#`, procure `page.tsx` e selecione **o arquivo em `src/app/upload/`**; repita para `src/lib/mock-tag-data.ts`. Confira os anexos. **Add Context** ou arrastar os arquivos ao Chat são alternativas equivalentes. Se `@workspace` estiver listado, você pode selecioná-lo para esta mesma pergunta; caso contrário, envie diretamente:
 
    ```text
-   Resuma o fluxo da página Upload e identifique somente os arquivos que controlam
-   o campo de tags. Para cada arquivo, explique por que ele é relevante. Não proponha
-   alterações ainda e sinalize qualquer hipótese sem evidência.
+   Explique de onde vêm as tags e como o campo do Upload é renderizado.
+   Cite os arquivos e símbolos que sustentam a resposta. Diferencie o que
+   já funciona do que falta para oferecer sugestões. Não edite arquivos.
    ```
 
-1. Abra `workshop/copilot-capabilities.md` no editor. Registre pelo menos três recursos encontrados e escolha a interface apropriada para pesquisa, planejamento, implementação e revisão.
-
-1. Substitua todos os campos `[PREENCHA]` e altere `Status: PENDENTE` para `Status: CONCLUIDO`.
-
-1. Salve, faça commit e push. O próximo passo será publicado na issue do exercício.
+5. Abra as referências da resposta e confira no código: `AVAILABLE_TAGS` é derivada de `PHOTO_TAGS`, mas ainda não alimenta o campo do Upload. Se um trecho continuar pouco claro, selecione-o e use `/explain`, quando disponível, ou peça “Explique esta seleção”. Não é necessário repetir toda a investigação.
+6. Publique a branch:
 
    ```bash
-   git add workshop/copilot-capabilities.md
-   git commit -m "docs: mapear recursos do Copilot Chat"
-   git push -u origin copilot-advanced
+   git push -u origin improve-upload
    ```
 
-### ✅ Resultado esperado
+## Resultado esperado
 
-O inventário registra pelo menos três recursos realmente disponíveis e justifica uma interface para cada fase. Limitações possuem um fallback, em vez de serem ocultadas.
+Você identificou as fontes das tags, observou a diferença entre catálogo e campo do Upload e publicou `improve-upload`. O workflow verifica o starter e libera o passo 2.
+
+**A ponte na entrega:** `/` indica uma tarefa, `@` pode direcionar a conversa e `#` fornece fontes ou indica ferramentas. A evidência de grounding é a correspondência entre a explicação e o código, não a presença desses caracteres no prompt.
 
 <details>
-<summary>Está com problemas?</summary><br/>
+<summary>Está com problemas? 🤷</summary><br/>
 
-- Se `/`, `#` ou `@` não abrirem uma lista, confirme que o foco está na caixa do Copilot Chat e atualize a extensão.
-- Registre apenas o que aparece na sua instalação. Um fallback válido pode ser anexar um arquivo manualmente ou descrever o contexto no prompt.
-- Se o pre-flight falhar nas dependências, execute `npm ci` e tente novamente.
-- Mantenha o servidor em uma task ou terminal dedicado e use outro terminal para Git.
+- **O passo não avançou:** confirme a branch com `git branch --show-current`. O nome deve ser exatamente `improve-upload`, publicado no seu repositório. Confira **Actions > Passo 1**. Se o trabalho já estiver pronto, use **Run workflow** nessa branch em vez de um commit vazio.
+- **O Codespace parece parado:** abra **View Creation Log**. A criação instala dependências e testa o starter, sem iniciar servidor em primeiro plano.
+- **`npm run preflight` falhou:** leia a linha indicada. Rode `npm ci` ou **Codespaces: Rebuild Container** para recuperar Node, Git e GitHub CLI.
+- **O preview não abre:** execute a task **Luma Gallery: iniciar aplicação** e abra **Ports > 3000 > Open in Browser**, acessando `/upload`. Se a porta já estiver ocupada, use o servidor existente.
+- **`#arquivo` não virou contexto:** selecione o item no menu de `#` e confira o anexo. Digitar o caminho ou deixar a aba aberta não garante a inclusão. **Add Context** é uma alternativa.
+- **`/explain` ou `@workspace` não aparece:** faça a pergunta diretamente com os arquivos anexados. A atividade não depende desses itens.
 
 </details>

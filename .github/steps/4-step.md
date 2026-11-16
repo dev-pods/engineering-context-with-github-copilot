@@ -1,70 +1,77 @@
-## Passo 4: Trate prompt engineering como experimento
+# Passo 4: Refine a acessibilidade pelo teclado
 
-Prompt engineering não é procurar uma frase mágica. É tornar objetivo, contexto, restrições, exemplos, formato e Definition of Done observáveis, comparar resultados e preservar a melhor versão como um ativo reutilizável.
+O filtro e a seleção por clique estão prontos. Agora permita concluir o mesmo fluxo sem mouse.
 
-### 📖 Teoria: técnicas com propósitos diferentes
+Continue na branch `improve-upload`.
 
-- **No-shot** mede o que o modelo faz apenas com a instrução.
-- **One-shot ou few-shot** reduz ambiguidade por meio de exemplos de entrada e saída.
-- **Step-back** pede primeiro princípios gerais relevantes, que depois orientam o prompt específico.
-- **Retrieval** encontra evidências externas ou internas. Ele pode usar busca, Spaces ou MCP, mas não é sinônimo desses mecanismos.
+## Teoria: itere a partir do comportamento observado
 
-### ⌨️ Atividade: compare e refine o prompt
+Uma boa iteração identifica o comportamento que falta, descreve o resultado esperado e limita a correção. Em um autocomplete, foco, opção ativa e estado anunciado por ARIA devem permanecer sincronizados. A presença de atributos ARIA, sozinha, não comprova acessibilidade.
 
-1. Em conversas novas, execute três versões sem permitir edições:
+### Ponte: resultados de ferramentas também são contexto
 
-   **No-shot**
+O erro de um teste é uma evidência nova para o próximo pedido. Anexar o erro observado é mais útil do que dizer apenas “não funciona”. O ciclo é: **executar → observar → fornecer contexto → corrigir → executar novamente**.
 
-   ```text
-   Planeje um autocomplete para as tags da página Upload.
-   ```
+Antes de trocar de modelo, confira se ele recebeu o erro e o comportamento esperado. Se o problema persistir mesmo com contexto suficiente, considere um modelo de maior capacidade disponível. Trocar de modelo não corrige requisitos ausentes nem garante acerto.
 
-   **Com exemplo**
+## Atividade: implemente e confira o teclado (10 minutos)
 
-   ```text
-   Planeje um autocomplete para as tags da página Upload.
-   Exemplo: entrada "w" deve mostrar "wedding" e "wildlife".
-   Preserve tags separadas por vírgula. Não edite arquivos.
-   ```
-
-   **Step-back e contexto**
-
-   ```text
-   Antes de planejar, resuma os princípios verificáveis de um combobox acessível,
-   incluindo teclado, foco e semântica. Em seguida, aplique esses princípios ao
-   context packet anexado. Liste arquivos, riscos, critérios e comandos. Não edite.
-   ```
-
-1. Anexe `workshop/context-packet.md` somente à terceira versão. Pontue as três respostas em `workshop/prompt-rubric.md`.
-
-1. Abra `.github/prompts/tag-autocomplete.prompt.md` no editor. Substitua os dois campos `[PREENCHA]` usando as evidências vencedoras. Preserve o foco único e o frontmatter.
-
-1. Inicie uma conversa nova e execute o prompt pelo menu `/` ou pelo botão de execução do editor. Salve a resposta em `workshop/implementation-plan.md`.
-
-1. Revise o plano. Quando fontes, arquivos, acessibilidade, riscos e validações estiverem claros, altere:
-
-   ```text
-   Plano aprovado para comparação de modelos: SIM
-   ```
-
-1. Marque a rubrica e o plano como `CONCLUIDO`, remova todos os campos `[PREENCHA]`, faça commit e push:
+1. Execute o contrato completo e observe quais interações faltam:
 
    ```bash
-   git add .github/prompts/tag-autocomplete.prompt.md workshop/prompt-rubric.md workshop/implementation-plan.md
-   git commit -m "docs: criar prompt verificável de autocomplete"
+   npm run test:solution
+   ```
+
+2. Em Agent, anexe o componente, um eventual wrapper cliente e `tests/solution/tag-autocomplete.test.tsx` com `#` ou **Add Context**. Se houve falha, selecione a saída relevante no terminal e anexe-a pelo menu; use a referência de seleção de terminal oferecida em `#`, quando disponível. Como alternativa, cole somente o erro necessário, sem dados sensíveis. Escolha um modelo adequado e envie:
+
+   ```text
+   Use as fontes e, se presente, o erro anexado para completar a interação
+   de teclado sem regredir filtro e clique.
+   ArrowDown/ArrowUp navegam pelas opções; Enter seleciona a opção ativa
+   sem submeter o formulário; Escape fecha sem mudar o texto; Tab sai
+   normalmente e fecha a lista. Mantenha foco no input, atualize
+   aria-activedescendant e aria-selected coerentemente e nunca aponte
+   para um ID ausente. Preserve tags anteriores, name="tags" e a label.
+   Não altere os testes de aceitação. Execute-os e corrija a causa real.
+   ```
+
+3. Revise o diff e confira no preview:
+
+   | Ação | Resultado esperado |
+   | --- | --- |
+   | `portrait, wi`, `ArrowDown`, `Enter` | `portrait, wildlife`, sem enviar o formulário |
+   | `ArrowUp` | Opção anterior fica ativa |
+   | `Escape` | Lista fecha sem alterar o texto |
+   | `Tab` | Foco sai do campo e a lista fecha |
+
+   Confira também foco visível e que `aria-activedescendant` referencia uma opção existente.
+
+4. Execute:
+
+   ```bash
+   node scripts/validate-step.mjs 4
+   npm run test:solution
+   ```
+
+5. Se houve alteração, publique a mudança. Se o teclado já estava completo e todos os checks passaram, não faça commit artificial: use **Actions > Passo 4 > Run workflow**, selecionando `improve-upload`, em vez destes comandos.
+
+   ```bash
+   git add src/app/upload/page.tsx src/components/upload
+   git commit -m "Support accessible tag keyboard navigation"
    git push
    ```
 
-### ✅ Resultado esperado
+## Resultado esperado
 
-A rubrica permite explicar por que uma versão venceu, o prompt file possui uma finalidade única e o plano aprovado referencia fontes, riscos e comandos verificáveis.
+O contrato completo passa e a interação funciona com teclado. O workflow também verifica lint e build, inclusive quando iniciado manualmente.
+
+**A ponte na entrega:** confira a execução da ferramenta — comando, saída e resultado — em vez de aceitar apenas “os testes passaram” no texto do Chat. Rodar `npm test` pelo terminal é uso de ferramenta; não exige nem comprova uso de MCP.
 
 <details>
-<summary>Está com problemas?</summary><br/>
+<summary>Está com problemas? 🤷</summary><br/>
 
-- Prompt files de workspace ficam em `.github/prompts` e usam a extensão `.prompt.md`.
-- Se o prompt não aparecer em `/`, use **Chat: Run Prompt** na paleta de comandos ou abra o arquivo e selecione o botão de execução.
-- Confirme que `chat.promptFiles` está habilitado nas configurações do VS Code quando a instalação oferecer essa opção.
-- O maior texto não precisa vencer. Escolha a versão que produz o plano correto com menos ambiguidade e trabalho adicional.
+- **O check falhou:** anexe a mensagem do teste ao pedido e solicite a menor correção necessária. Não remova asserções nem altere os contratos protegidos.
+- **Teclado ou ARIA falha:** mantenha o foco no input, use IDs reais para a opção ativa e sincronize o estado anunciado. Enter deve selecionar sem enviar o formulário.
+- **O teclado já funcionava desde o passo 3:** não crie mudanças artificiais. Use **Actions > Passo 4 > Run workflow** na branch `improve-upload`.
 
 </details>

@@ -1,89 +1,68 @@
-## Passo 2: Compare pouco, excesso e contexto suficiente
+# Passo 2: Amplie o catálogo de tags
 
-Context engineering é o trabalho de selecionar, organizar e manter as informações que permitem ao modelo resolver uma tarefa. Mais contexto não é automaticamente melhor: conteúdo irrelevante consome atenção, aumenta custo e pode ampliar o escopo da resposta.
+O campo do Upload ainda não usa o catálogo como sugestões. Primeiro, amplie os dados sem mudar a interface.
 
-### 📖 Teoria: duas falhas opostas
+## Teoria: exemplos e escolha do modelo
 
-- **Contexto insuficiente** obriga o modelo a adivinhar ou fazer perguntas adicionais.
-- **Contexto excessivo** mistura assuntos, aumenta a busca e incentiva mudanças desnecessárias.
-- **Contexto mínimo suficiente** fornece objetivo, fontes, restrições, exemplos e validação na medida da tarefa.
+Zero-shot é pedir uma tarefa sem exemplos; one-shot usa um exemplo; few-shot usa vários. Um exemplo da estrutura existente, junto de requisitos claros, costuma bastar para uma alteração pequena. Não é preciso repetir a tarefa em várias configurações.
 
-Neste passo, você repetirá a mesma tarefa de planejamento três vezes. Não aceite edições de código.
+### Ponte: prompt engineering e engenharia de modelos
 
-### ⌨️ Atividade: execute o experimento controlado
+**Engenharia de prompt** é especificar tarefa, exemplos e critérios. **Engenharia de modelos**, neste curso, é escolher e usar um modelo conforme complexidade, qualidade necessária, latência, custo e disponibilidade — não treinar ou fazer fine-tuning de um modelo.
 
-1. Em uma conversa já usada para outro assunto, sem anexar arquivos, envie:
+| Decisão | O que muda |
+| --- | --- |
+| Ask, Plan ou Agent | O tipo de trabalho: investigar, planejar ou implementar com ferramentas |
+| Modelo no seletor | O modelo que processa o pedido; não muda por si só as fontes ou permissões |
+| Contexto com `#` | As fontes e ferramentas indicadas para a tarefa, independentemente do modelo |
 
-   ```text
-   Deixe o campo de tags do upload mais inteligente com autocomplete.
-   Não edite arquivos. Apenas explique o que faria.
-   ```
+Para acrescentar três tags, comece com um modelo rápido disponível. Nos passos 3 e 4 há mais regras interligadas; maior capacidade pode ser útil se houver dificuldade. A seleção automática, quando oferecida, também é válida. Não há nome ou multiplicador obrigatório, nem comparação de execuções.
 
-1. Abra `workshop/context-experiment.md` no editor. Registre arquivos consultados, perguntas adicionais, créditos ou requests e problemas na seção **Execução A**.
+## Atividade: entregue novos dados (5 minutos)
 
-1. Continue na mesma conversa e anexe arquivos relevantes e irrelevantes, por exemplo:
-
-   - `src/app/upload/page.tsx`
-   - `src/components/upload/UploadZone.tsx`
-   - `src/app/page.tsx`
-   - `src/app/layout.tsx`
-   - `README.md`
-
-   Envie:
+1. Continue na branch `improve-upload`. Abra `src/lib/mock-tag-data.ts` e `tests/mock-tag-data.test.ts`.
+2. Em Agent, use `#` ou **Add Context** para anexar esses dois arquivos. Abra o seletor de modelos e confira as opções e informações de consumo/limites disponíveis antes de escolher. Se a política só oferecer uma opção, use-a. Envie:
 
    ```text
-   Melhore o autocomplete de tags do upload. Use os arquivos anexados como contexto,
-   preserve a aplicação e explique um plano. Não edite arquivos.
+   Amplie PHOTO_TAGS com travel, outdoor e editorial, cada uma na categoria
+   existente mais apropriada. Siga o formato atual; por exemplo, EVENT
+   contém wedding e professional. Preserve as tags existentes, use termos
+   minúsculos sem duplicatas e mantenha AVAILABLE_TAGS derivada e ordenada.
+   Não altere a interface nem tests/solution. Rode o teste de dados e
+   explique brevemente o diff.
    ```
 
-1. Registre os resultados na **Execução B**. Observe tokens/créditos, arquivos realmente usados e alterações fora do objetivo.
-
-1. Inicie uma conversa nova. Anexe apenas `src/app/upload/page.tsx` e `src/lib/mock-tag-data.ts`. Envie:
-
-   ```text
-   Planeje um autocomplete para o campo de tags da página Upload.
-
-   Critérios:
-   - ao digitar "w", sugerir "wedding" e "wildlife";
-   - usar a lista de tags existente;
-   - preservar valores separados por vírgula;
-   - não alterar outras áreas da aplicação;
-   - considerar teclado e semântica de combobox.
-
-   Liste fontes consultadas, arquivos a alterar, riscos e validações. Não edite arquivos.
-   ```
-
-1. Registre a **Execução C**, escolha a abordagem mais previsível e explique a evidência da escolha.
-
-1. Com pelo menos duas respostas ainda acessíveis, abra a paleta de comandos e execute **Copilot Chat Debug: Focus on Copilot Chat Debug View**. Compare o que estiver disponível em cada requisição:
-
-   - prompt e system instructions;
-   - arquivos ou trechos incluídos como contexto;
-   - modelo e metadados de uso.
-
-   Registre em `workshop/context-experiment.md` uma diferença observável. Não copie system prompts ou conteúdo interno completo: anote apenas categorias, fontes e metadados relevantes ao experimento.
-
-1. Remova todos os campos `[PREENCHA]`, altere o status para `CONCLUIDO`, faça commit e push:
+   O trecho sobre `EVENT` é o exemplo one-shot; preservar e derivar as tags são restrições; executar o teste é a verificação. Você está ajustando o pedido e o modelo à tarefa, não tentando provar que uma combinação sempre vence outra.
+3. Confira o diff: as novas tags devem estar nas categorias, sem uma lista paralela. Corrija qualquer remoção ou duplicação antes de aceitar.
+4. Execute:
 
    ```bash
-   git add workshop/context-experiment.md
-   git commit -m "docs: comparar estratégias de contexto"
+   node scripts/validate-step.mjs 2
+   npm test -- --run tests/mock-tag-data.test.ts
+   npm run test:solution -- tests/solution/tag-catalog.test.ts
+   ```
+
+5. Publique somente a entrega deste passo:
+
+   ```bash
+   git add src/lib/mock-tag-data.ts
+   git commit -m "Expand photo tag catalog"
    git push
    ```
 
-### ✅ Resultado esperado
+## Resultado esperado
 
-As três execuções usam a mesma intenção, mas diferem deliberadamente no contexto. A conclusão cita pelo menos uma evidência da resposta e uma evidência do Chat Debug.
+O catálogo preserva as tags anteriores, inclui `travel`, `outdoor` e `editorial`, e continua ordenado e sem duplicatas. O workflow executa o contrato dos dados antes de publicar o passo 3.
 
-> [!TIP]
-> Exportar ou compartilhar a conversa é opcional. Caminhos relativos deste exercício podem permanecer, mas remova nomes de usuário, caminhos locais, repositórios privados, código proprietário, e-mails, tokens, segredos e metadados que identifiquem pessoas ou ambientes. Não faça commit do chat exportado.
+**A ponte na entrega:** julgue se o modelo produziu a menor mudança correta e passou no contrato. Uma resposta rápida, longa ou confiante não é suficiente. Para consultar as opções atuais, veja [seleção de modelos no VS Code](https://code.visualstudio.com/docs/agent-customization/language-models).
 
 <details>
-<summary>Está com problemas?</summary><br/>
+<summary>Está com problemas? 🤷</summary><br/>
 
-- Créditos e detalhes de uso podem aparecer ao passar o cursor sobre uma resposta. Se sua interface não os mostrar, registre `não disponível` e compare turnos, arquivos e escopo.
-- Se a opção de Chat Debug não existir, registre `não disponível` e use a lista de referências exibida na própria resposta como evidência alternativa.
-- Não busque respostas idênticas. Compare previsibilidade, evidência e esforço necessário para chegar a uma proposta útil.
-- Se o Copilot editar arquivos, reverta apenas essas mudanças antes de continuar; este passo é exclusivamente analítico.
+- **O check falhou:** leia o teste indicado em Actions e corrija os dados, não o contrato. Neste passo, os outros contratos de solução ainda podem falhar porque a interface não foi implementada.
+- **Falta uma tag no catálogo:** adicione o termo a uma categoria de `PHOTO_TAGS`. Não substitua `AVAILABLE_TAGS` por uma lista paralela.
+- **`npm run test:solution` falha por completo:** é esperado antes das próximas entregas. Execute o contrato deste passo.
+- **O modelo sugerido não está disponível:** escolha outro adequado a uma edição pequena. Nenhum nome ou multiplicador específico é obrigatório.
+- **O push não iniciou a verificação:** confira se publicou `src/lib/mock-tag-data.ts` na branch `improve-upload` e se **Actions > Passo 2** está habilitado.
 
 </details>
