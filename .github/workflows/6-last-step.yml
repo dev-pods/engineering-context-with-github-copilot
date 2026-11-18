@@ -22,4 +22,4 @@ jobs:
     uses: skills/exercise-toolkit/.github/workflows/finish-exercise.yml@v0.9.3
     with:
       issue-url: ${{ needs.delivery.outputs.issue-url }}
-      exercise-title: "GitHub Copilot Advanced: entregas com contexto"
+      exercise-title: "GitHub Copilot Advanced - entregas com contexto"
