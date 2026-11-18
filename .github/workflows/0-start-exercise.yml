@@ -51,9 +51,8 @@ jobs:
           issue-number: ${{ env.ISSUE_NUMBER }}
           file: .github/translations/watching-for-progress.md
 
-      - name: Habilitar passo 1 e desabilitar inicialização
+      - name: Habilitar passo 1
         run: |
           gh workflow enable "Passo 1"
-          gh workflow disable "${{ github.workflow }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

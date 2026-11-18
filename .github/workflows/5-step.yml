@@ -8,6 +8,7 @@ on:
       - ".github/skills/test-tags/**"
       - tests/tag-autocomplete.test.tsx
       - "src/components/upload/**"
+      - src/app/upload/page.tsx
 
 permissions:
   contents: read
